@@ -7,12 +7,12 @@ use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Config {
-    crates: Option<BTreeMap<String, CrateInfo>>,
+    pub crates: Option<BTreeMap<String, CrateInfo>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct CrateInfo {
-    path: PathBuf,
+    pub path: PathBuf,
 }
 
 pub fn read_config() -> Config {
