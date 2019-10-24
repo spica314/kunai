@@ -1,13 +1,13 @@
-use serde::{Serialize, Deserialize};
-use std::collections::BTreeMap;
-use std::path::PathBuf;
 use dirs::config_dir;
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::fs::read_to_string;
 use std::io::Write;
+use std::path::PathBuf;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Config {
-    crates: Option<BTreeMap<String,CrateInfo>>,
+    crates: Option<BTreeMap<String, CrateInfo>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -37,10 +37,20 @@ fn test_parse_config() {
     "#;
     let config = parse_config(&toml_str);
     let mut btree = BTreeMap::new();
-    btree.insert("crate1".to_string(), CrateInfo{path: PathBuf::from_str("/path1").unwrap()});
-    btree.insert("crate2".to_string(), CrateInfo{path: PathBuf::from_str("/path2").unwrap()});
+    btree.insert(
+        "crate1".to_string(),
+        CrateInfo {
+            path: PathBuf::from_str("/path1").unwrap(),
+        },
+    );
+    btree.insert(
+        "crate2".to_string(),
+        CrateInfo {
+            path: PathBuf::from_str("/path2").unwrap(),
+        },
+    );
     let right = Config {
-        crates: Some(btree)
+        crates: Some(btree),
     };
     assert_eq!(config, right);
 }
