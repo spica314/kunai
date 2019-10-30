@@ -15,10 +15,10 @@ pub fn unify(bin_name: &Option<&str>, rust_2018: bool) -> String {
     pathbuf.push(&format!("{}.rs", bin_name.unwrap()));
     eprintln!("pathbuf = {:?}", pathbuf);
     let code = read_to_string(&pathbuf).unwrap();
-    unify_code2(&config, rust_2018, &code, &pathbuf)
+    unify_code(&config, rust_2018, &code, &pathbuf)
 }
 
-fn unify_code2(config: &Config, rust_2018: bool, s: &str, path: &PathBuf) -> String {
+pub fn unify_code(config: &Config, rust_2018: bool, s: &str, path: &PathBuf) -> String {
     let mut expanded = BTreeSet::new();
     let mut macro_use = BTreeSet::new();
     let mut crate_texts = vec![];
@@ -145,7 +145,7 @@ fn main() {
     let config = Config {
         crates: Some(btree),
     };
-    let res = unify_code2(&config, false, &s, &PathBuf::new());
+    let res = unify_code(&config, false, &s, &PathBuf::new());
     let right = r#"mod test_crate {
     pub fn test_function(x: i64) -> i64 {
         x + 1
