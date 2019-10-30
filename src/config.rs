@@ -5,12 +5,12 @@ use std::fs::read_to_string;
 use std::io::Write;
 use std::path::{Path,PathBuf};
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Default)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize, Deserialize)]
 pub struct Config {
     pub crates: Option<BTreeMap<String, CrateInfo>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize, Deserialize)]
 pub struct CrateInfo {
     pub path: PathBuf,
 }
