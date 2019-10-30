@@ -86,7 +86,7 @@ fn dfs(
                 res.push('\n');
                 continue;
             }
-            let mut pathbuf = config.get_crate_path(&crate_name).unwrap();
+            let mut pathbuf = config.crate_path(&crate_name).unwrap();
             pathbuf.push("src");
             pathbuf.push("lib.rs");
             let code = read_to_string(&pathbuf).unwrap();
@@ -111,7 +111,7 @@ fn dfs(
             if crate_name == "std" || crate_name == "core" || crate_name == "crate" {
                 panic!("unable to expand '{}'", line);
             }
-            let mut pathbuf = config.get_crate_path(&crate_name).unwrap();
+            let mut pathbuf = config.crate_path(&crate_name).unwrap();
             pathbuf.push("src");
             pathbuf.push("lib.rs");
             let code = read_to_string(&pathbuf).unwrap();
