@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs::read_to_string;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path,PathBuf};
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Default)]
 pub struct Config {
     pub crates: Option<BTreeMap<String, CrateInfo>>,
 }
@@ -15,12 +15,56 @@ pub struct CrateInfo {
     pub path: PathBuf,
 }
 
+impl Config {
+    pub fn new() -> Config {
+        Config {
+            crates: Some(BTreeMap::new()),
+        }
+    }
+    pub fn add_crate<P: AsRef<Path>>(&mut self, path: P) {
+        let crate_name = cargo_edit::get_crate_name_from_path(path.as_ref().canonicalize().unwrap().to_str().unwrap()).unwrap();
+        if self.crates.is_none() {
+            self.crates = Some(BTreeMap::new());
+        }
+        let mut pathbuf = PathBuf::new();
+        pathbuf.push(path);
+        let crate_info = CrateInfo {
+            path: pathbuf,
+        };
+        self.crates.as_mut().unwrap().insert(crate_name, crate_info);
+    }
+    pub fn get_crate_path(&self, name: &str) -> Option<PathBuf> {
+        if name == own_name() {
+            let mut res = cargo_edit::find(&None).unwrap();
+            res.pop();
+            Some(res)
+        }
+        else {
+            let r = self.crates.as_ref().unwrap();
+            Some(r.get(name).unwrap().path.clone())
+        }
+    }
+}
+
+fn own_name() -> String {
+    let mut path = cargo_edit::find(&None).unwrap();
+    path.pop();
+    cargo_edit::get_crate_name_from_path(path.to_str().unwrap()).unwrap()
+}
+
 pub fn read_config() -> Config {
     let mut path = config_dir().unwrap();
     path.push("kunai");
+    std::fs::create_dir_all(&path).unwrap();
     path.push("config.toml");
-    let s = read_to_string(&path).unwrap();
-    parse_config(&s)
+    match read_to_string(&path) {
+        Ok(s) => {
+            parse_config(&s)
+        }
+        Err(err) => {
+            Config::new()
+        }
+    }
 }
 
 fn parse_config(s: &str) -> Config {
@@ -58,6 +102,7 @@ fn test_parse_config() {
 pub fn write_config(config: &Config) {
     let mut path = config_dir().unwrap();
     path.push("kunai");
+    std::fs::create_dir_all(&path).unwrap();
     path.push("config.toml");
     let s = toml::to_string(config).unwrap();
     let file = std::fs::File::create(&path).unwrap();
