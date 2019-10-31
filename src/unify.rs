@@ -1,8 +1,8 @@
+use crate::cargo_wrapper;
 use crate::config::*;
 use std::collections::BTreeSet;
 use std::fs::read_to_string;
 use std::path::PathBuf;
-use crate::cargo_wrapper;
 
 pub fn unify(bin_name: &Option<&str>, rust_2018: bool) -> String {
     if bin_name.is_none() {
@@ -101,8 +101,7 @@ fn dfs(
                 if my_crate_name == "" {
                     res.push_str(line);
                     res.push('\n');
-                }
-                else {
+                } else {
                     if rust_2018 {
                         let line2 = line.replace("crate", &format!("crate::{}", my_crate_name));
                         res.push_str(&line2);
@@ -116,20 +115,20 @@ fn dfs(
                 continue;
             }
             let manifest = cargo_wrapper::manifest_from_path(my_path.as_path()).unwrap();
-            let pathbuf = if my_crate_name == "" && crate_name == cargo_wrapper::crate_name(&manifest) {
-                let mut pathbuf = cargo_wrapper::manifest_path().unwrap();
-                pathbuf.pop();
-                pathbuf.push("src");
-                pathbuf.push("lib.rs");
-                pathbuf
-            }
-            else {
-                let deps = cargo_wrapper::dependency_paths(&manifest);
-                let mut pathbuf = deps.get(&crate_name).unwrap().clone();
-                pathbuf.push("src");
-                pathbuf.push("lib.rs");
-                pathbuf
-            };
+            let pathbuf =
+                if my_crate_name == "" && crate_name == cargo_wrapper::crate_name(&manifest) {
+                    let mut pathbuf = cargo_wrapper::manifest_path().unwrap();
+                    pathbuf.pop();
+                    pathbuf.push("src");
+                    pathbuf.push("lib.rs");
+                    pathbuf
+                } else {
+                    let deps = cargo_wrapper::dependency_paths(&manifest);
+                    let mut pathbuf = deps.get(&crate_name).unwrap().clone();
+                    pathbuf.push("src");
+                    pathbuf.push("lib.rs");
+                    pathbuf
+                };
             let code = read_to_string(&pathbuf).unwrap();
             let mut buf = String::new();
             if !expanded.contains(&crate_name) {

@@ -1,11 +1,11 @@
-use cargo::util::important_paths::find_root_manifest_for_wd;
-use cargo::util::errors::CargoResult;
-use std::path::PathBuf;
 use cargo::core::manifest::Manifest;
-use cargo::util::config::Config;
 use cargo::core::Workspace;
-use std::path::Path;
+use cargo::util::config::Config;
+use cargo::util::errors::CargoResult;
+use cargo::util::important_paths::find_root_manifest_for_wd;
 use std::collections::BTreeMap;
+use std::path::Path;
+use std::path::PathBuf;
 
 pub fn manifest_path() -> CargoResult<PathBuf> {
     let pwd = std::env::current_dir()?;
@@ -24,7 +24,7 @@ pub fn crate_name(manifest: &Manifest) -> String {
     manifest.name().as_str().to_string()
 }
 
-pub fn dependency_paths(manifest: &Manifest) -> BTreeMap<String,PathBuf> {
+pub fn dependency_paths(manifest: &Manifest) -> BTreeMap<String, PathBuf> {
     let dependencies = manifest.dependencies();
     let mut res = BTreeMap::new();
     for dep in dependencies {

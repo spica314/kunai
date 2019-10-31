@@ -29,9 +29,7 @@ fn main() {
                             .required(true),
                     ),
                 )
-                .subcommand(
-                    SubCommand::with_name("list")
-                )
+                .subcommand(SubCommand::with_name("list")),
         );
     let matches = app.clone().get_matches();
     if let Some(unify_matches) = matches.subcommand_matches("unify") {

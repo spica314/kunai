@@ -1,19 +1,17 @@
+use crate::cargo_wrapper;
 use dirs::config_dir;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs::read_to_string;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use crate::cargo_wrapper;
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize, Deserialize)]
-pub struct Config {
-}
+pub struct Config {}
 
 impl Config {
     pub fn new() -> Config {
-        Config {
-        }
+        Config {}
     }
 }
 
