@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fs::read_to_string;
 use std::io::Write;
-use std::path::{Path,PathBuf};
+use std::path::{Path, PathBuf};
 
 #[derive(Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize, Deserialize)]
 pub struct Config {
@@ -22,15 +22,16 @@ impl Config {
         }
     }
     pub fn add_crate<P: AsRef<Path>>(&mut self, path: P) {
-        let crate_name = cargo_edit::get_crate_name_from_path(path.as_ref().canonicalize().unwrap().to_str().unwrap()).unwrap();
+        let crate_name = cargo_edit::get_crate_name_from_path(
+            path.as_ref().canonicalize().unwrap().to_str().unwrap(),
+        )
+        .unwrap();
         if self.crates.is_none() {
             self.crates = Some(BTreeMap::new());
         }
         let mut pathbuf = PathBuf::new();
         pathbuf.push(path);
-        let crate_info = CrateInfo {
-            path: pathbuf,
-        };
+        let crate_info = CrateInfo { path: pathbuf };
         self.crates.as_mut().unwrap().insert(crate_name, crate_info);
     }
     pub fn remove_crate(&mut self, crate_name: &str) {
@@ -44,8 +45,7 @@ impl Config {
             let mut res = cargo_edit::find(&None).unwrap();
             res.pop();
             Some(res)
-        }
-        else {
+        } else {
             let r = self.crates.as_ref().unwrap();
             Some(r.get(name).unwrap().path.clone())
         }
@@ -64,12 +64,8 @@ pub fn read_config() -> Config {
     std::fs::create_dir_all(&path).unwrap();
     path.push("config.toml");
     match read_to_string(&path) {
-        Ok(s) => {
-            parse_config(&s)
-        }
-        Err(err) => {
-            Config::new()
-        }
+        Ok(s) => parse_config(&s),
+        Err(err) => Config::new(),
     }
 }
 
