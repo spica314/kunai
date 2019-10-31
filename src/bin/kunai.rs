@@ -22,6 +22,12 @@ fn main() {
                     .required(true)
                 )
             )
+            .subcommand(SubCommand::with_name("remove")
+                .arg(Arg::with_name("crate-name")
+                    .value_name("crate-name")
+                    .required(true)
+                )
+            )
         );
     let matches = app.clone().get_matches();
     if let Some(unify_matches) = matches.subcommand_matches("unify") {
@@ -34,6 +40,12 @@ fn main() {
             let path = crate_add_matches.value_of("path").unwrap();
             let mut config = read_config();
             config.add_crate(&path);
+            write_config(&config);
+        }
+        else if let Some(crate_remove_matches) = crate_matches.subcommand_matches("remove") {
+            let path = crate_remove_matches.value_of("crate-name").unwrap();
+            let mut config = read_config();
+            config.remove_crate(&path);
             write_config(&config);
         }
         else {

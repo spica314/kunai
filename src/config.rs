@@ -33,6 +33,12 @@ impl Config {
         };
         self.crates.as_mut().unwrap().insert(crate_name, crate_info);
     }
+    pub fn remove_crate(&mut self, crate_name: &str) {
+        if self.crates.is_none() {
+            return;
+        }
+        self.crates.as_mut().unwrap().remove(crate_name);
+    }
     pub fn crate_path(&self, name: &str) -> Option<PathBuf> {
         if name == own_name() {
             let mut res = cargo_edit::find(&None).unwrap();
