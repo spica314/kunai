@@ -2,7 +2,6 @@
 extern crate clap;
 
 use clap::{App, Arg, SubCommand};
-use kunai::config::*;
 use kunai::unify::*;
 
 fn main() {

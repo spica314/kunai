@@ -84,7 +84,6 @@ fn dfs(
     res: &mut String,
 ) {
     let mut flag_macro_use = false;
-    // let mut res = String::new();
     for line in s.lines() {
         if line.starts_with("use ") {
             let crate_name: String = line
@@ -215,6 +214,4 @@ fn dfs(
             res.push('\n');
         }
     }
-    // expanded.insert(my_name.to_string());
-    // crate_texts.push((my_name.to_string(), res));
 }
