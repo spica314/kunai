@@ -1,5 +1,4 @@
 use crate::cargo_wrapper;
-use crate::config::*;
 use std::collections::BTreeSet;
 use std::fs::read_to_string;
 use std::path::PathBuf;
@@ -8,7 +7,6 @@ pub fn unify(bin_name: &Option<&str>, rust_2018: bool) -> String {
     if bin_name.is_none() {
         unimplemented!();
     }
-    let config = read_config();
     let mut pathbuf = cargo_wrapper::manifest_path().unwrap();
     pathbuf.pop();
     pathbuf.push("src");
@@ -16,16 +14,15 @@ pub fn unify(bin_name: &Option<&str>, rust_2018: bool) -> String {
     pathbuf.push(&format!("{}.rs", bin_name.unwrap()));
     eprintln!("pathbuf = {:?}", pathbuf);
     let code = read_to_string(&pathbuf).unwrap();
-    unify_code(&config, rust_2018, &code, &pathbuf)
+    unify_code(rust_2018, &code, &pathbuf)
 }
 
-pub fn unify_code(config: &Config, rust_2018: bool, s: &str, path: &PathBuf) -> String {
+pub fn unify_code(rust_2018: bool, s: &str, path: &PathBuf) -> String {
     let mut expanded = BTreeSet::new();
     let mut macro_use = BTreeSet::new();
     let mut crate_texts = vec![];
     let mut buf = String::new();
     dfs(
-        config,
         rust_2018,
         s,
         &mut expanded,
@@ -73,7 +70,6 @@ pub fn unify_code(config: &Config, rust_2018: bool, s: &str, path: &PathBuf) -> 
 }
 
 fn dfs(
-    config: &Config,
     rust_2018: bool,
     s: &str,
     expanded: &mut BTreeSet<String>,
@@ -132,7 +128,6 @@ fn dfs(
             let mut buf = String::new();
             if !expanded.contains(&crate_name) {
                 dfs(
-                    config,
                     rust_2018,
                     &code,
                     expanded,
@@ -164,7 +159,6 @@ fn dfs(
             res.push_str(&format!("pub mod {} {{", mod_name));
             res.push('\n');
             dfs(
-                config,
                 rust_2018,
                 &code,
                 expanded,
@@ -192,7 +186,6 @@ fn dfs(
             let mut buf = String::new();
             if !expanded.contains(&crate_name) {
                 dfs(
-                    config,
                     rust_2018,
                     &code,
                     expanded,
