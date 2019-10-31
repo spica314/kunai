@@ -2,13 +2,14 @@ use crate::config::*;
 use std::collections::BTreeSet;
 use std::fs::read_to_string;
 use std::path::PathBuf;
+use crate::cargo_wrapper;
 
 pub fn unify(bin_name: &Option<&str>, rust_2018: bool) -> String {
     if bin_name.is_none() {
         unimplemented!();
     }
     let config = read_config();
-    let mut pathbuf = cargo_edit::find(&None).unwrap();
+    let mut pathbuf = cargo_wrapper::manifest_path().unwrap();
     pathbuf.pop();
     pathbuf.push("src");
     pathbuf.push("bin");
@@ -61,8 +62,6 @@ pub fn unify_code(config: &Config, rust_2018: bool, s: &str, path: &PathBuf) -> 
             res.push('\n');
         }
     }
-    eprintln!("prev");
-    eprintln!("{}", res);
     let mut buf = vec![];
     let mut config = rustfmt_nightly::Config::default();
     config.set().emit_mode(rustfmt_nightly::EmitMode::Stdout);
@@ -110,7 +109,9 @@ fn dfs(
                 }
                 continue;
             }
-            let mut pathbuf = config.crate_path(&crate_name).unwrap();
+            let manifest = cargo_wrapper::manifest_from_path(my_path.as_path()).unwrap();
+            let deps = cargo_wrapper::dependency_paths(&manifest);
+            let mut pathbuf = deps.get(&crate_name).unwrap().clone();
             pathbuf.push("src");
             pathbuf.push("lib.rs");
             let code = read_to_string(&pathbuf).unwrap();
@@ -168,7 +169,9 @@ fn dfs(
             if crate_name == "std" || crate_name == "core" || crate_name == "crate" {
                 panic!("unable to expand '{}'", line);
             }
-            let mut pathbuf = config.crate_path(&crate_name).unwrap();
+            let manifest = cargo_wrapper::manifest_from_path(my_path.as_path()).unwrap();
+            let deps = cargo_wrapper::dependency_paths(&manifest);
+            let mut pathbuf = deps.get(&crate_name).unwrap().clone();
             pathbuf.push("src");
             pathbuf.push("lib.rs");
             let code = read_to_string(&pathbuf).unwrap();
@@ -199,40 +202,4 @@ fn dfs(
     }
     // expanded.insert(my_name.to_string());
     // crate_texts.push((my_name.to_string(), res));
-}
-
-#[test]
-fn test_unify() {
-    use std::collections::BTreeMap;
-    use std::str::FromStr;
-    let s = r#"
-use test_crate::test_function;
-fn main() {
-    println!("test");
-    assert_eq!(test_function(1), 2);
-}"#;
-    let mut btree = BTreeMap::new();
-    btree.insert(
-        "test_crate".to_string(),
-        CrateInfo {
-            path: PathBuf::from_str("test_data/test-crate").unwrap(),
-        },
-    );
-    let config = Config {
-        crates: Some(btree),
-    };
-    let res = unify_code(&config, false, &s, &PathBuf::new());
-    let right = r#"mod test_crate {
-    pub fn test_function(x: i64) -> i64 {
-        x + 1
-    }
-}
-
-use test_crate::test_function;
-fn main() {
-    println!("test");
-    assert_eq!(test_function(1), 2);
-}
-"#;
-    assert_eq!(res, right);
 }
