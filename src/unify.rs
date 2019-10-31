@@ -22,10 +22,11 @@ pub fn unify_code(config: &Config, rust_2018: bool, s: &str, path: &PathBuf) -> 
     let mut expanded = BTreeSet::new();
     let mut macro_use = BTreeSet::new();
     let mut crate_texts = vec![];
-    dfs(config, rust_2018, s, &mut expanded, &mut macro_use, &mut crate_texts, "", path);
+    let mut buf = String::new();
+    dfs(config, rust_2018, s, &mut expanded, &mut macro_use, &mut crate_texts, path, "", &mut buf);
     let mut res = String::new();
     let mut expanded_flag = false;
-    for line in crate_texts[crate_texts.len()-1].1.lines() {
+    for line in buf.lines() {
         if !expanded_flag && line.starts_with("use") {
             for (crate_name, text) in &crate_texts {
                 if crate_name == "" {
@@ -70,27 +71,43 @@ fn dfs(
     expanded: &mut BTreeSet<String>,
     macro_use: &mut BTreeSet<String>, 
     crate_texts: &mut Vec<(String,String)>, 
-    my_name: &str,
     my_path: &PathBuf,
+    my_crate_name: &str,
+    res: &mut String,
 ) {
-    if expanded.contains(my_name) {
-        return;
-    }
     let mut flag_macro_use = false;
-    let mut res = String::new();
+    // let mut res = String::new();
     for line in s.lines() {
         if line.starts_with("use ") {
             let crate_name: String = line.chars().skip(4).take_while(|&c| c != ':' && c != ';').collect();
-            if crate_name == "std" || crate_name == "core" || crate_name == "crate" {
+            if crate_name == "std" || crate_name == "core" {
                 res.push_str(line);
                 res.push('\n');
+                continue;
+            }
+            if crate_name == "crate" {
+                if rust_2018 {
+                    let line2 = line.replace("crate", &format!("crate::{}", my_crate_name));
+                    res.push_str(&line2);
+                    res.push('\n');
+                }
+                else {
+                    let line2 = res.replace("crate", &format!("::{}", my_crate_name));
+                    res.push_str(&line2);
+                    res.push('\n');
+                }
                 continue;
             }
             let mut pathbuf = config.crate_path(&crate_name).unwrap();
             pathbuf.push("src");
             pathbuf.push("lib.rs");
             let code = read_to_string(&pathbuf).unwrap();
-            dfs(config, rust_2018, &code, expanded, macro_use, crate_texts, &crate_name, &pathbuf);
+            let mut buf = String::new();
+            if ! expanded.contains(&crate_name) {
+                dfs(config, rust_2018, &code, expanded, macro_use, crate_texts, &pathbuf, &crate_name, &mut buf);
+                expanded.insert(crate_name.to_string());
+                crate_texts.push((crate_name.to_string(), buf));
+            }
             if rust_2018 {
                 let line2 = line.replace("use ", "use crate::");
                 res.push_str(&line2);
@@ -102,6 +119,18 @@ fn dfs(
                 res.push('\n');
             }
             flag_macro_use = false;
+        }
+        else if line.starts_with("pub mod ") {
+            let mod_name: String = line.chars().skip(8).take_while(|&c| c != ';').collect();
+            let mut pathbuf = my_path.clone();
+            pathbuf.pop();
+            pathbuf.push(&format!("{}.rs", mod_name));
+            let code = read_to_string(&pathbuf).unwrap();
+            res.push_str(&format!("pub mod {} {{", mod_name));
+            res.push('\n');
+            dfs(config, rust_2018, &code, expanded, macro_use, crate_texts, &pathbuf, my_crate_name, res);
+            res.push_str("}");
+            res.push('\n');
         }
         else if line.starts_with("#[macro_use]") {
             flag_macro_use = true;
@@ -115,7 +144,12 @@ fn dfs(
             pathbuf.push("src");
             pathbuf.push("lib.rs");
             let code = read_to_string(&pathbuf).unwrap();
-            dfs(config, rust_2018, &code, expanded, macro_use, crate_texts, &crate_name, &pathbuf);
+            let mut buf = String::new();
+            if ! expanded.contains(&crate_name) {
+                dfs(config, rust_2018, &code, expanded, macro_use, crate_texts, &pathbuf, &crate_name, &mut buf);
+                expanded.insert(crate_name.to_string());
+                crate_texts.push((crate_name.to_string(), buf));
+            }
             if flag_macro_use {
                 macro_use.insert(crate_name.clone());
             }
@@ -126,8 +160,8 @@ fn dfs(
             res.push('\n');
         }
     }
-    expanded.insert(my_name.to_string());
-    crate_texts.push((my_name.to_string(), res));
+    // expanded.insert(my_name.to_string());
+    // crate_texts.push((my_name.to_string(), res));
 }
 
 #[test]
