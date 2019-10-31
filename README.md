@@ -3,6 +3,28 @@ kunai
 
 A competitive programming tool for Rust.
 
+## Installing from source
+
+```
+cargo install --path . --locked
+```
+
+## Usage
+
+### Unify code
+
+Below command outputs a unified code of `src/bin/<binname>.rs`.
+```
+kunai unify <binname>
+```
+
+To use your snippet crates, write dependencies in Cargo.toml like below.
+
+```
+[dependencies]
+my_snippets = { path = "/path/to/my_snippets" }
+```
+
 ## License
 
 Licensed under either of
