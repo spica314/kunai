@@ -1,0 +1,14 @@
+language: rust
+rust:
+  - stable
+  - beta
+  - nightly
+script:
+  - printenv
+  - cargo build --verbose --all
+  - cargo test --verbose --all
+  - cargo install --path . --locked
+  - cd test_data/test1
+  - kunai unify main > a.rs
+  - rustc a.rs
+cache: cargo
