@@ -7,6 +7,9 @@ description = "A competitive programming tool for Rust"
 readme = "README.md"
 repository = "https://github.com/mouri111/kunai"
 license = "MIT OR Apache-2.0"
+exclude = [
+    "/test_data"
+]
 
 [dependencies]
 dirs = "2.0"
