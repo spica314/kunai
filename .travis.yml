@@ -9,4 +9,6 @@ script:
   - cd test_data/test1
   - kunai unify main > a.rs
   - rustc a.rs
+  - ./a > out.txt
+  - diff out.txt correct.txt
 cache: cargo
