@@ -1,6 +1,6 @@
 [package]
 name = "kunai"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Masato Mouri <13274198+mouri111@users.noreply.github.com>"]
 edition = "2018"
 description = "A competitive programming tool for Rust"
