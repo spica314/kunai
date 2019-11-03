@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use std::fs::read_to_string;
 use std::path::PathBuf;
 
-pub fn unify(bin_name: &Option<&str>, rust_2018: bool) -> String {
+pub fn unify(bin_name: &Option<&str>, rust_2018: bool, no_eprint: bool) -> String {
     if bin_name.is_none() {
         unimplemented!();
     }
@@ -13,17 +13,21 @@ pub fn unify(bin_name: &Option<&str>, rust_2018: bool) -> String {
     pathbuf.push("bin");
     pathbuf.push(&format!("{}.rs", bin_name.unwrap()));
     eprintln!("pathbuf = {:?}", pathbuf);
-    let code = read_to_string(&pathbuf).unwrap();
-    unify_code(rust_2018, &code, &pathbuf)
+    let mut code = read_to_string(&pathbuf).unwrap();
+    if no_eprint {
+        code = code.replace("eprint", "// eprint");
+    }
+    unify_code(rust_2018, no_eprint, &code, &pathbuf)
 }
 
-pub fn unify_code(rust_2018: bool, s: &str, path: &PathBuf) -> String {
+pub fn unify_code(rust_2018: bool, no_eprint: bool, s: &str, path: &PathBuf) -> String {
     let mut expanded = BTreeSet::new();
     let mut macro_use = BTreeSet::new();
     let mut crate_texts = vec![];
     let mut buf = String::new();
     dfs(
         rust_2018,
+        no_eprint,
         s,
         &mut expanded,
         &mut macro_use,
@@ -71,6 +75,7 @@ pub fn unify_code(rust_2018: bool, s: &str, path: &PathBuf) -> String {
 
 fn dfs(
     rust_2018: bool,
+    no_eprint: bool,
     s: &str,
     expanded: &mut BTreeSet<String>,
     macro_use: &mut BTreeSet<String>,
@@ -124,11 +129,15 @@ fn dfs(
                     pathbuf.push("lib.rs");
                     pathbuf
                 };
-            let code = read_to_string(&pathbuf).unwrap();
+            let mut code = read_to_string(&pathbuf).unwrap();
+            if no_eprint {
+                code = code.replace("eprint", "// eprint");
+            }
             let mut buf = String::new();
             if !expanded.contains(&crate_name) {
                 dfs(
                     rust_2018,
+                    no_eprint,
                     &code,
                     expanded,
                     macro_use,
@@ -155,11 +164,15 @@ fn dfs(
             let mut pathbuf = my_path.clone();
             pathbuf.pop();
             pathbuf.push(&format!("{}.rs", mod_name));
-            let code = read_to_string(&pathbuf).unwrap();
+            let mut code = read_to_string(&pathbuf).unwrap();
+            if no_eprint {
+                code = code.replace("eprint", "// eprint");
+            }
             res.push_str(&format!("pub mod {} {{", mod_name));
             res.push('\n');
             dfs(
                 rust_2018,
+                no_eprint,
                 &code,
                 expanded,
                 macro_use,
@@ -182,11 +195,15 @@ fn dfs(
             let mut pathbuf = deps.get(&crate_name).unwrap().clone();
             pathbuf.push("src");
             pathbuf.push("lib.rs");
-            let code = read_to_string(&pathbuf).unwrap();
+            let mut code = read_to_string(&pathbuf).unwrap();
+            if no_eprint {
+                code = code.replace("eprintln!", "// eprintln!");
+            }
             let mut buf = String::new();
             if !expanded.contains(&crate_name) {
                 dfs(
                     rust_2018,
+                    no_eprint,
                     &code,
                     expanded,
                     macro_use,

@@ -16,20 +16,21 @@ fn main() {
                     .required(true),
             )
             .arg(
-                Arg::with_name("rust2015_flag")
+                Arg::with_name("flag_rust2015")
                     .long("rust2015")
+            )
+            .arg(
+                Arg::with_name("flag_no_eprint")
+                    .long("no-eprint")
             )
         );
     let matches = app.clone().get_matches();
     if let Some(unify_matches) = matches.subcommand_matches("unify") {
         let binname = unify_matches.value_of("binname");
-        if unify_matches.is_present("rust2015_flag") {
-            let res = unify(&binname, false);
-            println!("{}", res);
-        } else {
-            let res = unify(&binname, true);
-            println!("{}", res);
-        }
+        let rust2015_flag = unify_matches.is_present("flag_rust2815");
+        let flag_no_eprint = unify_matches.is_present("flag_no_eprint");
+        let res = unify(&binname, rust2015_flag, flag_no_eprint);
+        println!("{}", res);
     } else {
         let mut app = app;
         app.print_help().ok();
