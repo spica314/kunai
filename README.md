@@ -30,6 +30,17 @@ To use your snippet crates, write dependencies in Cargo.toml like below.
 my_snippets = { path = "/path/to/my_snippets" }
 ```
 
+### Download testcases (for AtCoder)
+Below command stores sample testcases in /*path-to-cache_dir*/kunai/atcoder/*contest_name*/*problem_name*/sample_*id*.{in,out}
+```
+kunai download <problem_url>
+```
+
+### Login (for AtCoder)
+```
+kunai atcoder login
+```
+
 ## License
 
 Licensed under either of
