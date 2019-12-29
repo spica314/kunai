@@ -28,3 +28,14 @@ pub fn get_tests_from_html(html: &str) -> Result<Vec<(String,String)>, ()> {
     }
     Ok(res)
 }
+
+pub fn get_csrf_token_from_html(html: &str) -> Result<String, ()> {
+    let document = Html::parse_document(html);
+    let csrf_selector = Selector::parse(r#"input[name="csrf_token"]"#).unwrap();
+    for elem in document.select(&csrf_selector) {
+        if let Some(token) = elem.value().attr("value") {
+            return Ok(token.to_string());
+        }
+    }
+    Err(())
+}
