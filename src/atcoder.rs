@@ -132,9 +132,9 @@ pub fn login(username: &str, password: &str) -> Result<(), ()> {
 
 #[derive(Debug)]
 pub struct ProblemInfo {
-    contest_name: String,
-    problem_name: String,
-    tests: Vec<(String, String)>,
+    pub contest_name: String,
+    pub problem_name: String,
+    pub tests: Vec<(String, String)>,
 }
 
 impl ProblemInfo {
