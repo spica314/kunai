@@ -9,31 +9,27 @@ fn main() {
         .version(crate_version!())
         .author(crate_authors!())
         .subcommand(
-            SubCommand::with_name("unify").arg(
+            SubCommand::with_name("unify")
+            .arg(
                 Arg::with_name("binname")
                     .value_name("binname")
                     .required(true),
-            ),
-        )
-        .subcommand(
-            SubCommand::with_name("crate")
-                .subcommand(
-                    SubCommand::with_name("add")
-                        .arg(Arg::with_name("path").value_name("path").required(true)),
-                )
-                .subcommand(
-                    SubCommand::with_name("remove").arg(
-                        Arg::with_name("crate-name")
-                            .value_name("crate-name")
-                            .required(true),
-                    ),
-                )
-                .subcommand(SubCommand::with_name("list")),
+            )
+            .arg(
+                Arg::with_name("flag_rust2015")
+                    .long("rust2015")
+            )
+            .arg(
+                Arg::with_name("flag_no_eprint")
+                    .long("no-eprint")
+            )
         );
     let matches = app.clone().get_matches();
     if let Some(unify_matches) = matches.subcommand_matches("unify") {
         let binname = unify_matches.value_of("binname");
-        let res = unify(&binname, true);
+        let rust2015_flag = unify_matches.is_present("flag_rust2815");
+        let flag_no_eprint = unify_matches.is_present("flag_no_eprint");
+        let res = unify(&binname, rust2015_flag, flag_no_eprint);
         println!("{}", res);
     } else {
         let mut app = app;
