@@ -10,19 +10,13 @@ fn main() {
         .author(crate_authors!())
         .subcommand(
             SubCommand::with_name("unify")
-            .arg(
-                Arg::with_name("binname")
-                    .value_name("binname")
-                    .required(true),
-            )
-            .arg(
-                Arg::with_name("flag_rust2015")
-                    .long("rust2015")
-            )
-            .arg(
-                Arg::with_name("flag_no_eprint")
-                    .long("no-eprint")
-            )
+                .arg(
+                    Arg::with_name("binname")
+                        .value_name("binname")
+                        .required(true),
+                )
+                .arg(Arg::with_name("flag_rust2015").long("rust2015"))
+                .arg(Arg::with_name("flag_no_eprint").long("no-eprint")),
         );
     let matches = app.clone().get_matches();
     if let Some(unify_matches) = matches.subcommand_matches("unify") {

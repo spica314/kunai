@@ -1,11 +1,11 @@
-use scraper::{Html, Selector};
 use crate::scraping::*;
-use std::path::{Path,PathBuf};
-use std::io::Write;
+use reqwest::header::{HeaderMap, HeaderValue, COOKIE};
 use reqwest::{self, ClientBuilder};
-use reqwest::header::{HeaderMap,HeaderValue, COOKIE};
+use scraper::{Html, Selector};
+use std::io::Write;
+use std::path::{Path, PathBuf};
 
-pub fn get_tests_from_html(html: &str) -> Result<Vec<(String,String)>, ()> {
+pub fn get_tests_from_html(html: &str) -> Result<Vec<(String, String)>, ()> {
     let document = Html::parse_document(html);
     let h3_selector = Selector::parse("h3").unwrap();
     let pre_selector = Selector::parse("pre").unwrap();
@@ -19,8 +19,7 @@ pub fn get_tests_from_html(html: &str) -> Result<Vec<(String,String)>, ()> {
         }
         if h3_text.contains("入力") {
             inputs.push(pre_text);
-        }
-        else if h3_text.contains("出力") {
+        } else if h3_text.contains("出力") {
             outputs.push(pre_text);
         }
     }
@@ -76,7 +75,7 @@ pub fn store_session_cookie(cookies: &Vec<String>) {
     }
 }
 
-pub fn write_to_file<P: AsRef<Path>>(path: P, s: &str) -> Result<(),()> {
+pub fn write_to_file<P: AsRef<Path>>(path: P, s: &str) -> Result<(), ()> {
     let mut file = std::fs::File::create(&path).unwrap();
     file.write_all(s.as_bytes()).unwrap();
     Ok(())
@@ -84,15 +83,10 @@ pub fn write_to_file<P: AsRef<Path>>(path: P, s: &str) -> Result<(),()> {
 
 pub fn get_page(url: &str) -> Result<String, ()> {
     let cookies = load_session_cookie();
-    let client = ClientBuilder::new()
-        .cookie_store(true)
-        .build().unwrap();
+    let client = ClientBuilder::new().cookie_store(true).build().unwrap();
     let mut cookie_headers = HeaderMap::new();
     for cookie in cookies {
-        cookie_headers.insert(
-            COOKIE,
-            HeaderValue::from_str(&cookie).unwrap()
-        );
+        cookie_headers.insert(COOKIE, HeaderValue::from_str(&cookie).unwrap());
     }
     let mut response = client.get(url).headers(cookie_headers).send().unwrap();
     let text = response.text().unwrap();
@@ -105,9 +99,7 @@ pub fn get_page(url: &str) -> Result<String, ()> {
 }
 
 pub fn login(username: &str, password: &str) -> Result<(), ()> {
-    let client = ClientBuilder::new()
-        .cookie_store(true)
-        .build().unwrap();
+    let client = ClientBuilder::new().cookie_store(true).build().unwrap();
     let mut login_page_response = client.get("https://atcoder.jp/login").send().unwrap();
     let login_page_text = login_page_response.text().unwrap();
     let mut cookies = vec![];
@@ -116,10 +108,7 @@ pub fn login(username: &str, password: &str) -> Result<(), ()> {
     }
     let mut cookie_headers = HeaderMap::new();
     for cookie in cookies {
-        cookie_headers.insert(
-            COOKIE,
-            HeaderValue::from_str(&cookie).unwrap()
-        );
+        cookie_headers.insert(COOKIE, HeaderValue::from_str(&cookie).unwrap());
     }
     let csrf_token = get_csrf_token_from_html(&login_page_text).unwrap();
     let params = [
@@ -127,7 +116,12 @@ pub fn login(username: &str, password: &str) -> Result<(), ()> {
         ("password", password),
         ("csrf_token", &csrf_token),
     ];
-    let res = client.post("https://atcoder.jp/login?continue=https%3A%2F%2Fatcoder.jp%2Fhome").headers(cookie_headers).form(&params).send().unwrap();
+    let res = client
+        .post("https://atcoder.jp/login?continue=https%3A%2F%2Fatcoder.jp%2Fhome")
+        .headers(cookie_headers)
+        .form(&params)
+        .send()
+        .unwrap();
     let mut cookies = vec![];
     for cookie in res.cookies() {
         cookies.push(format!("{}={}", cookie.name(), cookie.value()).to_string());
@@ -140,15 +134,19 @@ pub fn login(username: &str, password: &str) -> Result<(), ()> {
 pub struct ProblemInfo {
     contest_name: String,
     problem_name: String,
-    tests: Vec<(String,String)>,    
+    tests: Vec<(String, String)>,
 }
 
 impl ProblemInfo {
     pub fn get(problem_url: &str) -> ProblemInfo {
         let url = url::Url::parse(problem_url).unwrap();
-        let segs: Vec<String> = url.path_segments().unwrap().map(|s|s.to_string()).collect();
-        let contest_name = segs[segs.len()-3].clone();
-        let problem_name = segs[segs.len()-1].clone();
+        let segs: Vec<String> = url
+            .path_segments()
+            .unwrap()
+            .map(|s| s.to_string())
+            .collect();
+        let contest_name = segs[segs.len() - 3].clone();
+        let problem_name = segs[segs.len() - 1].clone();
         let problem_text = get_page(problem_url).unwrap();
         let tests = get_tests_from_html(&problem_text).unwrap();
         ProblemInfo {
@@ -157,7 +155,7 @@ impl ProblemInfo {
             tests,
         }
     }
-    pub fn save_tests(&self) -> Result<(),()> {
+    pub fn save_tests(&self) -> Result<(), ()> {
         let mut pathbuf = dirs::cache_dir().unwrap();
         pathbuf.push("kunai");
         pathbuf.push(&self.contest_name);
