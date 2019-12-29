@@ -158,6 +158,7 @@ impl ProblemInfo {
     pub fn save_tests(&self) -> Result<(), ()> {
         let mut pathbuf = dirs::cache_dir().unwrap();
         pathbuf.push("kunai");
+        pathbuf.push("atcoder");
         pathbuf.push(&self.contest_name);
         pathbuf.push(&self.problem_name);
         std::fs::create_dir_all(&pathbuf).unwrap();
