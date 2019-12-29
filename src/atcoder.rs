@@ -1,6 +1,6 @@
 use scraper::{Html, Selector};
 use crate::scraping::*;
-use std::path::PathBuf;
+use std::path::{Path,PathBuf};
 use std::io::Write;
 use reqwest::{self, ClientBuilder};
 use reqwest::header::{HeaderMap,HeaderValue, COOKIE};
@@ -13,7 +13,10 @@ pub fn get_tests_from_html(html: &str) -> Result<Vec<(String,String)>, ()> {
     let mut outputs = vec![];
     for elems in continuous_select(&document, &[&h3_selector, &pre_selector]) {
         let h3_text: String = elems[0].text().collect();
-        let pre_text: String = elems[1].text().collect();
+        let mut pre_text: String = elems[1].text().collect();
+        if pre_text.chars().last().unwrap() != '\n' {
+            pre_text.push('\n');
+        }
         if h3_text.contains("入力") {
             inputs.push(pre_text);
         }
@@ -71,6 +74,12 @@ pub fn store_session_cookie(cookies: &Vec<String>) {
         file.write_all(cookie.as_bytes()).unwrap();
         file.write_all("\n".as_bytes()).unwrap();
     }
+}
+
+pub fn write_to_file<P: AsRef<Path>>(path: P, s: &str) -> Result<(),()> {
+    let mut file = std::fs::File::create(&path).unwrap();
+    file.write_all(s.as_bytes()).unwrap();
+    Ok(())
 }
 
 pub fn get_page(url: &str) -> Result<String, ()> {
@@ -147,5 +156,21 @@ impl ProblemInfo {
             problem_name,
             tests,
         }
+    }
+    pub fn save_tests(&self) -> Result<(),()> {
+        let mut pathbuf = dirs::cache_dir().unwrap();
+        pathbuf.push("kunai");
+        pathbuf.push(&self.contest_name);
+        pathbuf.push(&self.problem_name);
+        std::fs::create_dir_all(&pathbuf).unwrap();
+        for (i, (test_in, test_out)) in self.tests.iter().enumerate() {
+            pathbuf.push(&format!("sample_{}.in", i + 1));
+            write_to_file(&pathbuf, test_in).unwrap();
+            pathbuf.pop();
+            pathbuf.push(&format!("sample_{}.out", i + 1));
+            write_to_file(&pathbuf, test_out).unwrap();
+            pathbuf.pop();
+        }
+        Ok(())
     }
 }
