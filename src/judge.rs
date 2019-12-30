@@ -107,7 +107,7 @@ pub fn judge1(binname: &str, test_in: &str, test_out: &str, timelimit: &Duration
             return JudgeResult::TimeLimitExceeded;
         }
         match child.try_wait() {
-            Ok(Some(status)) => {
+            Ok(Some(_status)) => {
                 let mut buf = vec![];
                 child.stdout.as_mut().unwrap().read_to_end(&mut buf).unwrap();
                 let out = std::str::from_utf8(&buf).unwrap();
@@ -135,7 +135,8 @@ pub fn judge1(binname: &str, test_in: &str, test_out: &str, timelimit: &Duration
     }    
 }
 
-pub fn judge(binname: &str, testdir: &PathBuf, timelimit: &Duration) -> Vec<JudgeResult> {
+pub fn judge(binname: &str, testdir: &PathBuf, timelimit: &Duration) -> Vec<(JudgeResult, String)> {
+    eprintln!("testdir = {:?}", testdir);
     let mut res = vec![];
     for entry in glob(&format!("{}/*.in", testdir.to_str().unwrap())).expect("Failed to read glob pattern") {
         match entry {
@@ -145,7 +146,8 @@ pub fn judge(binname: &str, testdir: &PathBuf, timelimit: &Duration) -> Vec<Judg
                 path.set_extension("out");
                 let test_out = std::fs::read_to_string(&path).unwrap();
                 let r = judge1(binname, &test_in, &test_out, timelimit);
-                res.push(r);
+                path.set_extension("");
+                res.push((r, path.to_str().unwrap().to_string()));
             },
             Err(e) => {
                 panic!("{:?}", e);
