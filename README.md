@@ -6,7 +6,7 @@ A competitive programming tool for Rust.
 ## Installing from source
 
 ```
-cargo install --path . --locked
+cargo install --path .
 ```
 
 ## Usage
