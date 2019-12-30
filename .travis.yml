@@ -5,7 +5,7 @@ script:
   - printenv
   - cargo build --verbose --all
   - cargo test --verbose --all
-  - cargo install --path . --locked --force
+  - cargo install --path . --force --locked
   - cd test_data/test1
   - kunai unify main > a.rs
   - rustc a.rs
