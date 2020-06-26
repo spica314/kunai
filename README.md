@@ -18,9 +18,9 @@ Below command outputs a unified code of `src/bin/<binname>.rs`.
 kunai unify <binname>
 ```
 
-For AtCoder(Rust 1.15.1)
+For AtCoder(Rust 1.42.0)
 ```
-kunai unify --no-eprint --rust2015 <binname>
+kunai unify --no-eprint <binname>
 ```
 
 To use your snippet crates, write dependencies in Cargo.toml like below.

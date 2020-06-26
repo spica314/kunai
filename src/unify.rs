@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use std::fs::read_to_string;
 use std::path::PathBuf;
 
-pub fn unify(bin_name: &Option<&str>, rust_2018: bool, no_eprint: bool) -> String {
+pub fn unify(bin_name: &Option<&str>, no_eprint: bool) -> String {
     if bin_name.is_none() {
         unimplemented!();
     }
@@ -17,16 +17,15 @@ pub fn unify(bin_name: &Option<&str>, rust_2018: bool, no_eprint: bool) -> Strin
     if no_eprint {
         code = code.replace("eprint", "// eprint");
     }
-    unify_code(rust_2018, no_eprint, &code, &pathbuf)
+    unify_code(no_eprint, &code, &pathbuf)
 }
 
-pub fn unify_code(rust_2018: bool, no_eprint: bool, s: &str, path: &PathBuf) -> String {
+pub fn unify_code(no_eprint: bool, s: &str, path: &PathBuf) -> String {
     let mut expanded = BTreeSet::new();
     let mut macro_use = BTreeSet::new();
     let mut crate_texts = vec![];
     let mut buf = String::new();
     dfs(
-        rust_2018,
         no_eprint,
         s,
         &mut expanded,
@@ -74,7 +73,6 @@ pub fn unify_code(rust_2018: bool, no_eprint: bool, s: &str, path: &PathBuf) -> 
 }
 
 fn dfs(
-    rust_2018: bool,
     no_eprint: bool,
     s: &str,
     expanded: &mut BTreeSet<String>,
@@ -102,15 +100,9 @@ fn dfs(
                     res.push_str(line);
                     res.push('\n');
                 } else {
-                    if rust_2018 {
-                        let line2 = line.replace("crate", &format!("crate::{}", my_crate_name));
-                        res.push_str(&line2);
-                        res.push('\n');
-                    } else {
-                        let line2 = res.replace("crate", &format!("::{}", my_crate_name));
-                        res.push_str(&line2);
-                        res.push('\n');
-                    }
+                    let line2 = line.replace("crate", &format!("crate::{}", my_crate_name));
+                    res.push_str(&line2);
+                    res.push('\n');
                 }
                 continue;
             }
@@ -136,7 +128,6 @@ fn dfs(
             let mut buf = String::new();
             if !expanded.contains(&crate_name) {
                 dfs(
-                    rust_2018,
                     no_eprint,
                     &code,
                     expanded,
@@ -149,15 +140,9 @@ fn dfs(
                 expanded.insert(crate_name.to_string());
                 crate_texts.push((crate_name.to_string(), buf));
             }
-            if rust_2018 {
-                let line2 = line.replace("use ", "use crate::");
-                res.push_str(&line2);
-                res.push('\n');
-            } else {
-                let line2 = line.replace("use ", "use ::");
-                res.push_str(&line2);
-                res.push('\n');
-            }
+            let line2 = line.replace("use ", "use crate::");
+            res.push_str(&line2);
+            res.push('\n');
             flag_macro_use = false;
         } else if line.starts_with("pub mod ") {
             let mod_name: String = line.chars().skip(8).take_while(|&c| c != ';').collect();
@@ -171,7 +156,6 @@ fn dfs(
             res.push_str(&format!("pub mod {} {{", mod_name));
             res.push('\n');
             dfs(
-                rust_2018,
                 no_eprint,
                 &code,
                 expanded,
@@ -202,7 +186,6 @@ fn dfs(
             let mut buf = String::new();
             if !expanded.contains(&crate_name) {
                 dfs(
-                    rust_2018,
                     no_eprint,
                     &code,
                     expanded,

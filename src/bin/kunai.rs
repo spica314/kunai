@@ -41,7 +41,7 @@ fn main() {
     if let Some(unify_matches) = matches.subcommand_matches("unify") {
         let binname = unify_matches.value_of("binname");
         let flag_no_eprint = unify_matches.is_present("flag_no_eprint");
-        let res = unify(&binname, rust2015_flag, flag_no_eprint);
+        let res = unify(&binname, flag_no_eprint);
         println!("{}", res);
     } else if let Some(download_matches) = matches.subcommand_matches("download") {
         let url = download_matches.value_of("url").unwrap();

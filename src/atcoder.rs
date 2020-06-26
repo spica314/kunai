@@ -1,6 +1,6 @@
 use crate::scraping::*;
 use reqwest::header::{HeaderMap, HeaderValue, COOKIE};
-use reqwest::{self, ClientBuilder};
+use reqwest::blocking::{self, ClientBuilder};
 use scraper::{Html, Selector};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -89,23 +89,23 @@ pub fn get_page(url: &str) -> Result<String, ()> {
         cookie_headers.insert(COOKIE, HeaderValue::from_str(&cookie).unwrap());
     }
     let mut response = client.get(url).headers(cookie_headers).send().unwrap();
-    let text = response.text().unwrap();
     let mut cookies = vec![];
     for cookie in response.cookies() {
         cookies.push(format!("{}={}", cookie.name(), cookie.value()).to_string());
     }
     store_session_cookie(&cookies);
+    let text = response.text().unwrap();
     Ok(text)
 }
 
 pub fn login(username: &str, password: &str) -> Result<(), ()> {
     let client = ClientBuilder::new().cookie_store(true).build().unwrap();
     let mut login_page_response = client.get("https://atcoder.jp/login").send().unwrap();
-    let login_page_text = login_page_response.text().unwrap();
     let mut cookies = vec![];
     for cookie in login_page_response.cookies() {
         cookies.push(format!("{}={}", cookie.name(), cookie.value()).to_string());
     }
+    let login_page_text = login_page_response.text().unwrap();
     let mut cookie_headers = HeaderMap::new();
     for cookie in cookies {
         cookie_headers.insert(COOKIE, HeaderValue::from_str(&cookie).unwrap());
