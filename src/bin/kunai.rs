@@ -16,7 +16,6 @@ fn main() {
                         .value_name("binname")
                         .required(true),
                 )
-                .arg(Arg::with_name("flag_rust2015").long("rust2015"))
                 .arg(Arg::with_name("flag_no_eprint").long("no-eprint")),
         )
         .subcommand(
@@ -41,7 +40,6 @@ fn main() {
     let matches = app.clone().get_matches();
     if let Some(unify_matches) = matches.subcommand_matches("unify") {
         let binname = unify_matches.value_of("binname");
-        let rust2015_flag = unify_matches.is_present("flag_rust2815");
         let flag_no_eprint = unify_matches.is_present("flag_no_eprint");
         let res = unify(&binname, rust2015_flag, flag_no_eprint);
         println!("{}", res);
